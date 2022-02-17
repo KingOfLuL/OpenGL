@@ -2,7 +2,7 @@ CC = g++
 
 SRC = $(wildcard src/*.cpp) $(wildcard src/**/*.cpp) $(wildcard lib/**/**/*.c)
 
-LIBS = -lassimp.dll -lglfw3.dll
+LIBS = -Llib -l:libassimp.dll.a -l:libglfw3.dll.a
 
 CFLAGS = -Wall -Wextra -g3 -O2 -Ilib -Ilib/glad/include -Isrc
 
