@@ -5,17 +5,26 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "compile and run",
+            "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/bin/main.exe",
-            "args": [],
             "cwd": "${workspaceFolder}",
             "externalConsole": true,
-            "environment": [],
             "MIMode": "gdb",
             "miDebuggerPath": "D:\\msys64\\mingw64\\bin\\gdb.exe",
-            "preLaunchTask": "C/C++: Compile",
+            "preLaunchTask": "Debug",
+        },
+        {
+            "name": "Build",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/bin/main.exe",
+            "cwd": "${workspaceFolder}",
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "miDebuggerPath": "D:\\msys64\\mingw64\\bin\\gdb.exe",
+            "preLaunchTask": "Build",
         }
     ]
 }
