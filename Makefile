@@ -7,6 +7,8 @@ LIBS_DYN = -lglfw3.dll -lassimp.dll
 
 CFLAGS = -Wall -Wextra -g3 -Ilib -Ilib/glad/include -Isrc
 
+PCH = src/pch/pch.hpp
+
 OUT = bin/main
 
 build:
@@ -14,3 +16,6 @@ build:
 
 debug:
 	$(CC) $(SRC) $(CFLAGS) $(LIBS_DYN) -o $(OUT)
+
+pch:
+	$(CC) $(PCH) $(CFLAGS)

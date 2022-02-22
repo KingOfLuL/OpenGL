@@ -1,13 +1,9 @@
 #ifndef MESH_HPP
 #define MESH_HPP
 
-#include <glad/glad.h>
-#include <shader/shader.hpp>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "pch/pch.hpp"
 
-#include <string>
-#include <vector>
+#include <shader/shader.hpp>
 
 using namespace std;
 

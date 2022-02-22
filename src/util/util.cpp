@@ -1,9 +1,6 @@
-#include "util.hpp"
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <stb/stb_image.h>
+#define STB_IMAGE_IMPLEMENTATION
 
-#include <iostream>
+#include "util.hpp"
 
 using namespace std;
 

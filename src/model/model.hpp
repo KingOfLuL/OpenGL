@@ -1,24 +1,14 @@
 #ifndef MODEL_HPP
 #define MODEL_HPP
 
-#include <glad/glad.h>
+#include <util/util.hpp>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <stb/stb_image.h>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
 #include <model/mesh.hpp>
-#include <model/model.hpp>
 
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <map>
-#include <vector>
 using namespace std;
 
 class Model

@@ -1,5 +1,4 @@
 #include "model.hpp"
-#include <util/util.hpp>
 
 Model::Model(string const &path)
 {

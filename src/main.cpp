@@ -1,16 +1,9 @@
-#define STB_IMAGE_IMPLEMENTATION
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
+#include "pch/pch.hpp"
 
 #include <camera/camera.hpp>
 #include <shader/shader.hpp>
 #include <model/model.hpp>
 #include <util/util.hpp>
-
-#include <vertices.hpp>
-
-#include <iostream>
 
 unsigned int SCR_WIDTH = 1920, SCR_HEIGHT = 1080;
 
