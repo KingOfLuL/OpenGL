@@ -1,9 +1,11 @@
 #include "pch/pch.hpp"
 
-#include <camera/camera.hpp>
-#include <shader/shader.hpp>
-#include <model/model.hpp>
-#include <util/util.hpp>
+#include "vertices.hpp"
+#include "camera/camera.hpp"
+#include "shader/shader.hpp"
+#include "model/model.hpp"
+#include "util/util.hpp"
+#include "scene/scene.hpp"
 
 unsigned int SCR_WIDTH = 1920, SCR_HEIGHT = 1080;
 
@@ -13,24 +15,6 @@ void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow *window, double xPos, double yPos);
 void scroll_callback(GLFWwindow *window, double xOffset, double yOffset);
 
-glm::vec3 initailPointLightPositions[] = {
-    glm::vec3(1.8f, -0.2f, 0.4f),
-    glm::vec3(-1.0f, 0.5f, 1.3f),
-    glm::vec3(-1.7f, 0.6f, -1.6f),
-    glm::vec3(1.2f, -0.9f, -1.4f)};
-glm::vec3 pointLightPositions[4];
-
-glm::vec3 pointLightColors[] = {
-    glm::vec3(0.9, 0.2, 0.5),
-    glm::vec3(0.4, 0.3, 1.0),
-    glm::vec3(0.2, 0.7, 0.8),
-    glm::vec3(0.6, 1.0, 0.3)};
-
-float pointLightAngles[] = {0.0f, 90.0f, 180.0f, 270.0f};
-
-glm::vec3 dirLightDirection = glm::vec3(0.5f, 0.4f, -0.2f);
-float dirLightAngle = 0.0f;
-
 float deltaTime = 0;
 float lastFrame = 0;
 
@@ -39,22 +23,17 @@ float lastY;
 int firstMouse = 1;
 
 Camera camera;
+Camera rearviewCamera;
 
 int main()
 {
     stbi_set_flip_vertically_on_load(true);
 
-    std::vector<glm::vec3> windows{
-        glm::vec3(-1.5f, 0.0f, -0.48f),
-        glm::vec3(1.5f, 0.0f, 0.51f),
-        glm::vec3(0.0f, 0.0f, 0.7f),
-        glm::vec3(-0.3f, 0.0f, -2.3f),
-        glm::vec3(0.5f, 0.0f, -0.6f)};
-
     lastX = SCR_WIDTH * 0.5;
     lastY = SCR_HEIGHT * 0.5;
 
-    camera = Camera(glm::vec3(0.0f, 2.0f, 5.0f));
+    camera = Camera({0.0f, 2.0f, 5.0f});
+    rearviewCamera = Camera({0.0f, 2.0f, 5.0f}, {0.0f, 1.0f, 0.0f}, -90.0f, 180.0f);
 
     // window setup
     glfwInit();
@@ -83,22 +62,52 @@ int main()
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
+    Scene scene = Scene();
 
-    // shader
-    Shader shaderLit("vertex/vertexShader.glsl", "fragment/lit.glsl");
-    Shader shaderUnlit("vertex/vertexShader.glsl", "fragment/unlit.glsl");
-    Shader shaderColor("vertex/vertexShader.glsl", "fragment/color.glsl");
+    unsigned int VAO, VBO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
 
-    // model
-    Model backpack("backpack/backpack.obj");
-    Model cube("cube/cube.obj");
-    Model plane("plane/plane.obj");
+    glBindVertexArray(VAO);
 
-    unsigned int transparentTex = util::textureFromFile("window.png", util::TEXTURE_PATH);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(QUAD_VERTICES), QUAD_VERTICES, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(QUAD_INDICES), QUAD_INDICES, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(0));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+
+    unsigned int framebuffer;
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    unsigned int textureColorbuffer;
+    glGenTextures(1, &textureColorbuffer);
+    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+
+    unsigned int rbo;
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    Shader screenShader("vertex/screen.glsl", "fragment/screen.glsl");
 
     while (!glfwWindowShouldClose(window))
     {
@@ -109,100 +118,22 @@ int main()
         // input
         processInput(window);
 
-        // background
-        glClearColor(0.1, 0.1, 0.1, 1.0);
-
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
+        scene.draw(camera, SCR_WIDTH, SCR_HEIGHT, deltaTime);
 
-        /// matrices
-        glm::mat4 modelMatrix(1.0f);
-        glm::mat4 viewMatrix = camera.getViewMatrix();
-        glm::mat4 projectionMatrix = glm::perspective(glm::radians(camera.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
-        // update light positions
-        for (int i = 0; i < 4; i++)
-        {
-            float x, y, z;
-            if (i % 2 == 0)
-            {
-                x = sin(pointLightAngles[i]) * 2;
-                y = cos(pointLightAngles[i]) * 2;
-                z = cos(pointLightAngles[i]) * 2;
-            }
-            else
-            {
-                x = -cos(pointLightAngles[i]) * 2;
-                y = -sin(pointLightAngles[i]) * 2;
-                z = sin(pointLightAngles[i]) * 2;
-            }
-            pointLightPositions[i] = initailPointLightPositions[i] + glm::vec3(x, y, z);
-            pointLightAngles[i] += deltaTime * 2;
-        }
+        screenShader.use();
+        glBindVertexArray(VAO);
+        glDisable(GL_DEPTH_TEST);
+        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        shaderColor.use();
-
-        shaderColor.setMat4("view", viewMatrix);
-        shaderColor.setMat4("projection", projectionMatrix);
-
-        for (int i = 0; i < 4; i++)
-        {
-            modelMatrix = glm::mat4(1.0f);
-            modelMatrix = glm::translate(modelMatrix, pointLightPositions[i]);
-            modelMatrix = glm::scale(modelMatrix, glm::vec3(0.15f));
-            shaderColor.setMat4("model", modelMatrix);
-            shaderColor.setVec3("color", pointLightColors[i]);
-            cube.draw(shaderColor);
-        }
-        modelMatrix = glm::mat4(1.0f);
-
-        shaderLit.use();
-
-        shaderLit.setMat4("view", viewMatrix);
-        shaderLit.setMat4("projection", projectionMatrix);
-        shaderLit.setMat4("model", modelMatrix);
-
-        shaderLit.setVec3("viewPos", camera.position);
-        shaderLit.setFloat("material.shininess", 32.0f);
-
-        shaderLit.setVec3("dirLight.direction", dirLightDirection);
-        shaderLit.setVec3("dirLight.ambient", glm::vec3(0.0f));
-        shaderLit.setVec3("dirLight.diffuse", glm::vec3(0.2f));
-        shaderLit.setVec3("dirLight.specular", glm::vec3(0.0f));
-        for (int i = 0; i < 4; i++)
-        {
-            const std::string s = "pointLights[" + std::to_string(i) + "].";
-            shaderLit.setVec3(s + "position", pointLightPositions[i]);
-            shaderLit.setVec3(s + "ambient", glm::vec3(0.0f));
-            shaderLit.setVec3(s + "diffuse", pointLightColors[i]);
-            shaderLit.setVec3(s + "specular", pointLightColors[i]);
-            shaderLit.setFloat(s + "constant", 1.0f);
-            shaderLit.setFloat(s + "linear", 0.09f);
-            shaderLit.setFloat(s + "quadratic", 0.032f);
-        }
-        backpack.draw(shaderLit);
-
-        shaderUnlit.use();
-        shaderUnlit.setMat4("view", viewMatrix);
-        shaderUnlit.setMat4("projection", projectionMatrix);
-
-        std::map<float, glm::vec3> sorted;
-
-        glActiveTexture(GL_TEXTURE0);
-        shaderUnlit.setInt("material.diffuse", 0);
-        glBindTexture(GL_TEXTURE_2D, transparentTex);
-        for (unsigned int i = 0; i < windows.size(); i++)
-        {
-            float distance = glm::length(camera.position - windows[i]);
-            sorted[distance] = windows[i];
-        }
-        for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it)
-        {
-            modelMatrix = glm::mat4(1.0f);
-            modelMatrix = glm::translate(modelMatrix, it->second);
-            modelMatrix = glm::scale(modelMatrix, glm::vec3(1.5f));
-            shaderUnlit.setMat4("model", modelMatrix);
-            plane.draw(shaderUnlit);
-        }
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

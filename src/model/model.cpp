@@ -1,5 +1,6 @@
 #include "model.hpp"
 
+Model::Model() {}
 Model::Model(string const &path)
 {
     string filePath = util::MODEL_PATH + path;

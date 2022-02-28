@@ -8,7 +8,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
     this->yaw = yaw;
     this->pitch = pitch;
 }
-glm::mat4 Camera::getViewMatrix()
+glm::mat4 Camera::getViewMatrix() const
 {
     return glm::lookAt(position, position + front, up);
 }

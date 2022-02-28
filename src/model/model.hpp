@@ -19,6 +19,7 @@ public:
     string directory;
 
     Model(string const &path);
+    Model();
     void draw(Shader &shader);
 
 private:

@@ -1,8 +1,6 @@
 #ifndef PCH_HPP
 #define PCH_HPP
 
-#include "vertices.hpp"
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 

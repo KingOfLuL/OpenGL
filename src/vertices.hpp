@@ -1,5 +1,5 @@
-#ifndef CUBE_HPP
-#define CUBE_HPP
+#ifndef VERTICES_HPP
+#define VERTICES_HPP
 
 #include <glm/glm.hpp>
 
@@ -45,6 +45,13 @@ const float cubeVertices[288] = {
     0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
     -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
     -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
+float QUAD_VERTICES[] = {
+    -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, // top left
+    1.0f, 1.0f, 0.0f, 1.0f, 1.0f,  // top right
+    1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+    -1.0f, -1.0f, 0.0f, 0.0f, 0.0f // bottom left
+};
+const int QUAD_INDICES[] = {0, 1, 3, 1, 2, 3};
 const float planeVertices_noNormals[] = {
     5.0f, -0.5f, 5.0f, 2.0f, 0.0f,
     -5.0f, -0.5f, 5.0f, 0.0f, 0.0f,
@@ -104,4 +111,4 @@ const float cubeVertices_noNormals[] = {
     0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
     -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
     -0.5f, 0.5f, -0.5f, 0.0f, 1.0f};
-#endif // CUBE_HPP
+#endif // VERTICES_HPP

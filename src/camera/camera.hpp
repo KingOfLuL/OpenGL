@@ -39,7 +39,7 @@ public:
            float yaw = YAW,
            float pitch = PITCH);
 
-    glm::mat4 getViewMatrix();
+    glm::mat4 getViewMatrix() const;
 
     void processKeyboard(Direction direction, float deltaTime);
 
